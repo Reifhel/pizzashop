@@ -45,7 +45,7 @@ export const authentication = new Elysia()
       },
     };
   })
-  .derive(({ getCurrentUser }) => {
+  .derive({ as: "global" }, ({ getCurrentUser }) => {
     return {
       getManagedRestaurantId: async () => {
         const { restaurantId } = await getCurrentUser();
