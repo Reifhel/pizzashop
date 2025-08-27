@@ -1,9 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { signIn } from "@/api/sign-in";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,25 +17,38 @@ const signInFormSchema = z.object({
 type SignInForm = z.infer<typeof signInFormSchema>;
 
 export function SignIn() {
+  const [searchParams] = useSearchParams();
+
   const {
     register,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<SignInForm>({
     resolver: zodResolver(signInFormSchema),
+    defaultValues: {
+      email: searchParams.get("email") ?? "",
+    },
   });
 
-  function handleSignIn(data: SignInForm) {
-    console.log(data);
+  const { mutateAsync: authenticate } = useMutation({
+    mutationFn: signIn,
+  });
 
-    toast.success("Enviamos um link de autenticação para seu e-mail!", {
-      action: {
-        label: "Reenviar",
-        onClick: () => {
-          console.log("reenviado");
+  async function handleSignIn(data: SignInForm) {
+    try {
+      await authenticate({ email: data.email });
+
+      toast.success("Enviamos um link de autenticação para seu e-mail!", {
+        action: {
+          label: "Reenviar",
+          onClick: () => {
+            console.log("reenviado");
+          },
         },
-      },
-    });
+      });
+    } catch {
+      toast.error("Credenciais inválidas");
+    }
   }
 
   return (
