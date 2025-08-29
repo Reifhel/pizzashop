@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { RegisterRestaurant } from "@/api/register-restaurant";
+import { registerRestaurant } from "@/api/register-restaurant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +31,7 @@ export function SignUp() {
   });
 
   const { mutateAsync: registerRestaurantFn } = useMutation({
-    mutationFn: RegisterRestaurant,
+    mutationFn: registerRestaurant,
   });
 
   async function handleSignUp(data: SignUpForm) {
