@@ -1,3 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router";
+import z from "zod";
+
+import { getOrders } from "@/api/get-orders";
 import { Pagination } from "@/components/pagination";
 import {
   Table,
@@ -11,6 +16,25 @@ import { OrderTableFilters } from "./components/order-table-filters";
 import { OrderTableRow } from "./components/order-table-row";
 
 export function Orders() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageIndex = z.coerce
+    .number()
+    .transform((page) => page - 1)
+    .parse(searchParams.get("page") ?? "1");
+
+  const { data: result } = useQuery({
+    queryKey: ["orders", pageIndex],
+    queryFn: () => getOrders({ pageIndex }),
+  });
+
+  function handlePaginate(pageIndex: number) {
+    setSearchParams((prev) => {
+      prev.set("page", (pageIndex + 1).toString());
+
+      return prev;
+    });
+  }
+
   return (
     <>
       <title>Pedidos | pizza.shop</title>
@@ -35,21 +59,22 @@ export function Orders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.from({ length: 10 }).map((_, i) => {
-                  return (
-                    <OrderTableRow
-                      id="ijdaiojsd1023dsad2"
-                      clientName="Rafael Schmitz Herdt"
-                      price={149.99}
-                      key={i}
-                    />
-                  );
-                })}
+                {result &&
+                  result.orders.map((order) => {
+                    return <OrderTableRow key={order.orderId} order={order} />;
+                  })}
               </TableBody>
             </Table>
           </div>
 
-          <Pagination pageIndex={0} totalCount={105} perPage={20} />
+          {result && (
+            <Pagination
+              onPageChange={handlePaginate}
+              pageIndex={result.meta.pageIndex}
+              totalCount={result.meta.totalCount}
+              perPage={result.meta.perPage}
+            />
+          )}
         </div>
       </div>
     </>
